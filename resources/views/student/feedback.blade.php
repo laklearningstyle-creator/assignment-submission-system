@@ -4,117 +4,95 @@
 
 @section('content')
 <div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-12">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 mb-4">
+            <div class="card border-0 rounded-4 shadow-sm sticky-top" style="top: 80px;">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="fw-bold mb-0" style="font-size: 1rem;">
+                        <i class="fas fa-graduation-cap me-2" style="color: #0D6EFD;"></i> Student Menu
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{{ route('student.dashboard') }}" class="list-group-item list-group-item-action border-0 rounded-0 py-3">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                        <a href="{{ route('student.my-courses') }}" class="list-group-item list-group-item-action border-0 rounded-0 py-3">
+                            <i class="fas fa-book me-2"></i> My Courses
+                        </a>
+                        <a href="{{ route('student.my-submissions') }}" class="list-group-item list-group-item-action border-0 rounded-0 py-3">
+                            <i class="fas fa-paper-plane me-2"></i> My Submissions
+                        </a>
+                        <a href="{{ route('student.my-grades') }}" class="list-group-item list-group-item-action border-0 rounded-0 py-3">
+                            <i class="fas fa-star me-2"></i> My Grades
+                        </a>
+                        <a href="{{ route('student.my-feedback') }}" class="list-group-item list-group-item-action border-0 rounded-0 py-3 active" style="background: #0D6EFD; color: white;">
+                            <i class="fas fa-comment me-2"></i> My Feedback
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
             <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-header bg-gradient-primary text-white rounded-top-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-header bg-gradient-info text-white rounded-top-4" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
                     <h4 class="mb-0">
                         <i class="fas fa-comment-dots me-2"></i> My Feedback
                     </h4>
                 </div>
-                <div class="card-body p-4">
-                    @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show">
-                            <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
 
+                <div class="card-body p-4">
                     @if($feedbacks->count() > 0)
-                        <div class="row">
+                        <div class="row g-4">
                             @foreach($feedbacks as $feedback)
-                                <div class="col-md-6 mb-4">
-                                    <div class="card h-100 border-0 shadow-sm hover-card">
-                                        <div class="card-header bg-transparent border-0 pt-3">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <h5 class="mb-0 text-primary">
-                                                    <i class="fas fa-tasks me-2"></i>
-                                                    {{ $feedback->submission->assignment->title ?? 'N/A' }}
-                                                </h5>
-                                                <span class="badge bg-info">
-                                                    {{ $feedback->created_at->format('M d, Y') }}
-                                                </span>
-                                            </div>
-                                        </div>
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-0 shadow-sm feedback-card">
                                         <div class="card-body">
-                                            <p class="text-muted mb-2">
-                                                <i class="fas fa-book me-1"></i>
-                                                <strong>Course:</strong> {{ $feedback->submission->assignment->course->course_name ?? 'N/A' }}
-                                            </p>
-                                            <p class="text-muted mb-3">
-                                                <i class="fas fa-chalkboard-user me-1"></i>
-                                                <strong>Teacher:</strong> {{ $feedback->teacher->full_name ?? 'N/A' }}
-                                            </p>
-                                            <div class="alert alert-light border-start border-4 border-primary mt-3">
-                                                <i class="fas fa-quote-left text-primary me-2"></i>
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                                                        <i class="fas fa-comment text-primary"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="mb-0" style="font-size: 1rem;">{{ $feedback->submission->assignment->title ?? 'N/A' }}</h5>
+                                                        <small class="text-muted" style="font-size: 0.7rem;">{{ $feedback->submission->assignment->course->course_name ?? 'N/A' }}</small>
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-info" style="font-size: 0.65rem;">{{ $feedback->created_at->format('M d, Y') }}</span>
+                                            </div>
+
+                                            <div class="feedback-content bg-light p-3 rounded-3 mb-3">
+                                                <i class="fas fa-quote-left text-muted me-2"></i>
                                                 {{ $feedback->comment }}
                                             </div>
-                                        </div>
-                                        <div class="card-footer bg-transparent border-0 pb-3">
-                                            @if($feedback->submission->grade)
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <span class="badge bg-success fs-6 px-3 py-2">
-                                                            Grade: {{ $feedback->submission->grade->grade }}
-                                                        </span>
-                                                    </div>
-                                                    <div class="text-muted small">
-                                                        <i class="fas fa-star me-1"></i>
-                                                        {{ $feedback->submission->grade->marks_obtained }}/{{ $feedback->submission->assignment->total_marks ?? 100 }}
-                                                    </div>
+
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <i class="fas fa-chalkboard-user text-muted me-1"></i>
+                                                    <small class="text-muted" style="font-size: 0.7rem;">Teacher: {{ $feedback->teacher->full_name ?? 'N/A' }}</small>
                                                 </div>
-                                            @else
-                                                <div class="text-muted small">
-                                                    <i class="fas fa-hourglass-half me-1"></i>
-                                                    Not graded yet
-                                                </div>
-                                            @endif
+                                                @if($feedback->submission->grade)
+                                                    <span class="badge bg-success" style="font-size: 0.65rem;">
+                                                        Grade: {{ $feedback->submission->grade->grade }} ({{ $feedback->submission->grade->marks_obtained }}/{{ $feedback->submission->assignment->total_marks ?? 100 }})
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
-
-                        <!-- Summary Section -->
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div class="card bg-light border-0">
-                                    <div class="card-body">
-                                        <h6 class="text-muted mb-3">Feedback Summary</h6>
-                                        <div class="row">
-                                            <div class="col-md-4 text-center">
-                                                <div class="display-6 fw-bold text-primary">{{ $feedbacks->count() }}</div>
-                                                <div class="text-muted small">Total Feedback</div>
-                                            </div>
-                                            <div class="col-md-4 text-center">
-                                                <div class="display-6 fw-bold text-success">
-                                                    {{ $feedbacks->where('submission.grade', '!=', null)->count() }}
-                                                </div>
-                                                <div class="text-muted small">With Grades</div>
-                                            </div>
-                                            <div class="col-md-4 text-center">
-                                                @php
-                                                    $avgMarks = $feedbacks->where('submission.grade', '!=', null)->avg(function($f) {
-                                                        return $f->submission->grade->marks_obtained ?? 0;
-                                                    });
-                                                @endphp
-                                                <div class="display-6 fw-bold text-info">{{ number_format($avgMarks, 1) }}%</div>
-                                                <div class="text-muted small">Average Score</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="mt-4">
+                            {{ $feedbacks->links() ?? '' }}
                         </div>
                     @else
                         <div class="text-center text-muted py-5">
                             <i class="fas fa-comments fa-3x mb-3"></i>
-                            <h5>No Feedback Yet</h5>
-                            <p>You haven't received any feedback from teachers yet.</p>
-                            <p class="small">Submit assignments and wait for teachers to provide feedback.</p>
-                            <a href="{{ route('assignments.index') }}" class="btn btn-primary mt-2">
-                                <i class="fas fa-tasks me-1"></i> Browse Assignments
-                            </a>
+                            <h5 class="text-muted" style="font-size: 1rem;">No Feedback Yet</h5>
+                            <p class="text-muted" style="font-size: 0.875rem;">You haven't received any feedback from teachers yet.</p>
                         </div>
                     @endif
                 </div>
@@ -124,15 +102,51 @@
 </div>
 
 <style>
-    .hover-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     }
-    .hover-card:hover {
+    .feedback-card {
+        transition: all 0.3s ease;
+    }
+    .feedback-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
     }
-    .border-start-primary {
-        border-left-color: #667eea !important;
+    .feedback-content {
+        border-left: 4px solid #667eea;
+        font-size: 0.85rem;
+    }
+
+    /* Sidebar Styling */
+    .list-group-item {
+        transition: all 0.2s ease;
+        font-size: 0.8rem;
+    }
+    .list-group-item:not(.active):hover {
+        background-color: #f8fafc;
+        color: #0D6EFD;
+        padding-left: 24px;
+    }
+    .list-group-item.active {
+        background: #0D6EFD;
+        color: white;
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+    }
+    .sticky-top {
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+    }
+
+    @media (max-width: 768px) {
+        .sticky-top {
+            position: relative;
+            top: 0;
+            margin-bottom: 1rem;
+        }
+        h4 {
+            font-size: 1.25rem;
+        }
     }
 </style>
 @endsection

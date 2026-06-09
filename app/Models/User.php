@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $user_id
@@ -15,6 +16,8 @@ use Illuminate\Notifications\Notifiable;
  * @property string $username
  * @property string $password
  * @property string $status
+ * @property string|null $avatar
+ * @property string|null $avatar_color
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Assignment> $createdAssignments
@@ -63,6 +66,8 @@ class User extends Authenticatable
         'username',
         'password',
         'status',
+        'avatar',
+        'avatar_color',
     ];
 
     protected $hidden = [
@@ -82,23 +87,110 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class, 'role_id', 'role_id');
     }
 
-    // Check if user is admin
+    // Check if user is admin - using role_id directly (more efficient, no extra query)
     public function isAdmin()
     {
-        return $this->role && $this->role->role_name === 'admin';
+        return $this->role_id == 1;
     }
 
     // Check if user is teacher
     public function isTeacher()
     {
-        return $this->role && $this->role->role_name === 'teacher';
+        return $this->role_id == 2;
     }
 
     // Check if user is student
     public function isStudent()
     {
-        return $this->role && $this->role->role_name === 'student';
+        return $this->role_id == 3;
     }
+
+    // Alternative: Get role name directly
+    public function getRoleNameAttribute()
+    {
+        return $this->role ? $this->role->role_name : 'student';
+    }
+
+    // ==================== AVATAR METHODS ====================
+
+    /**
+     * Get avatar URL attribute
+     */
+    public function getAvatarUrlAttribute()
+    {
+        if ($this->avatar && Storage::disk('public')->exists($this->avatar)) {
+            return Storage::disk('public')->url($this->avatar);
+        }
+        return null;
+    }
+
+    /**
+     * Get avatar color based on user role or custom color
+     */
+    public function getAvatarColorAttribute()
+    {
+        if ($this->attributes['avatar_color'] ?? false) {
+            return $this->attributes['avatar_color'];
+        }
+
+        // Role-based colors
+        $roleColors = [
+            1 => '#ef4444', // Admin - Red
+            2 => '#10b981', // Teacher - Green
+            3 => '#3b82f6', // Student - Blue
+        ];
+
+        if (isset($roleColors[$this->role_id])) {
+            return $roleColors[$this->role_id];
+        }
+
+        // Fallback random colors based on user_id
+        $colors = ['#667eea', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+        return $colors[$this->user_id % count($colors)];
+    }
+
+    /**
+     * Get user initials from full name
+     */
+    public function getInitialsAttribute()
+    {
+        $words = explode(' ', trim($this->full_name));
+        $initials = '';
+        foreach ($words as $word) {
+            if (!empty($word)) {
+                $initials .= strtoupper(substr($word, 0, 1));
+            }
+        }
+        return substr($initials, 0, 2);
+    }
+
+    /**
+     * Get role-based avatar border class
+     */
+    public function getAvatarBorderClassAttribute()
+    {
+        return match($this->role_id) {
+            1 => 'avatar-border-admin',
+            2 => 'avatar-border-teacher',
+            3 => 'avatar-border-student',
+            default => 'avatar-border-default',
+        };
+    }
+
+    /**
+     * Get role icon for avatar
+     */
+    public function getRoleIconAttribute()
+    {
+        return match($this->role_id) {
+            1 => '👑',
+            2 => '👨‍🏫',
+            3 => '🎓',
+            default => '👤'
+        };
+    }
+
+    // ==================== END AVATAR METHODS ====================
 
     // Student enrollments
     public function enrollments()
@@ -141,13 +233,38 @@ class User extends Authenticatable
     {
         return $this->hasManyThrough(Feedback::class, Submission::class, 'student_id', 'submission_id', 'user_id', 'submission_id');
     }
+
+    // Courses created by this user
     public function courses()
     {
         return $this->hasMany(Course::class, 'created_by', 'user_id');
     }
 
+    // Taught courses (alias for createdCourses)
     public function taughtCourses()
     {
         return $this->hasMany(Course::class, 'created_by', 'user_id');
+    }
+
+    // Get full name with role badge
+    public function getDisplayNameAttribute()
+    {
+        return $this->getRoleIconAttribute() . ' ' . $this->full_name;
+    }
+
+    // Check if user has a specific permission based on role
+    public function canManageCourses()
+    {
+        return $this->isAdmin() || $this->isTeacher();
+    }
+
+    public function canManageUsers()
+    {
+        return $this->isAdmin();
+    }
+
+    public function canGradeSubmissions()
+    {
+        return $this->isAdmin() || $this->isTeacher();
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Assignment;
 use App\Models\Submission;
 use App\Models\SubmissionFile;
+use App\Models\Enrollment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,11 @@ use Carbon\Carbon;
 
 class SubmissionController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     /**
      * Display a listing of submissions (Teacher/Admin view).
      */
@@ -50,8 +56,7 @@ class SubmissionController extends Controller
         $assignment = Assignment::with('course')->findOrFail($assignment_id);
 
         // Check if student is enrolled in the course
-        $isEnrolled = \DB::table('enrollments')
-            ->where('student_id', Auth::user()->user_id)
+        $isEnrolled = Enrollment::where('student_id', Auth::user()->user_id)
             ->where('course_id', $assignment->course_id)
             ->exists();
 
@@ -60,18 +65,17 @@ class SubmissionController extends Controller
                 ->with('error', 'You are not enrolled in this course.');
         }
 
+        // Check deadline
+        $deadlinePassed = Carbon::now()->gt($assignment->due_date);
+        if ($deadlinePassed && !$assignment->allow_late_submission) {
+            return redirect()->route('assignments.show', $assignment_id)
+                ->with('error', 'Submission deadline has passed and late submissions are not allowed.');
+        }
+
         // Check if already submitted
         $existingSubmission = Submission::where('assignment_id', $assignment_id)
             ->where('student_id', Auth::user()->user_id)
             ->first();
-
-        if ($existingSubmission && !$assignment->allow_late_submission) {
-            $deadlinePassed = Carbon::now()->gt($assignment->due_date);
-            if ($deadlinePassed) {
-                return redirect()->route('assignments.show', $assignment_id)
-                    ->with('error', 'Submission deadline has passed and late submissions are not allowed.');
-            }
-        }
 
         return view('submissions.create', compact('assignment', 'existingSubmission'));
     }
@@ -83,15 +87,14 @@ class SubmissionController extends Controller
     {
         $request->validate([
             'assignment_id' => 'required|exists:assignments,assignment_id',
-            'content' => 'nullable|string',
+            'submission_text' => 'nullable|string',
             'file' => 'nullable|file|max:10240', // 10MB max
         ]);
 
         $assignment = Assignment::findOrFail($request->assignment_id);
 
         // Check if student is enrolled
-        $isEnrolled = \DB::table('enrollments')
-            ->where('student_id', Auth::user()->user_id)
+        $isEnrolled = Enrollment::where('student_id', Auth::user()->user_id)
             ->where('course_id', $assignment->course_id)
             ->exists();
 
@@ -100,15 +103,17 @@ class SubmissionController extends Controller
                 ->with('error', 'You are not enrolled in this course.');
         }
 
+        // Check deadline
+        $deadlinePassed = Carbon::now()->gt($assignment->due_date);
+        if ($deadlinePassed && !$assignment->allow_late_submission) {
+            return redirect()->route('assignments.show', $request->assignment_id)
+                ->with('error', 'Submission deadline has passed. Late submissions are not allowed.');
+        }
+
         // Check for existing submission
         $existingSubmission = Submission::where('assignment_id', $request->assignment_id)
             ->where('student_id', Auth::user()->user_id)
             ->first();
-
-        if ($existingSubmission && !$assignment->allow_late_submission) {
-            return redirect()->route('assignments.show', $request->assignment_id)
-                ->with('error', 'You have already submitted this assignment.');
-        }
 
         // Determine if submission is late
         $isLate = Carbon::now()->gt($assignment->due_date);
@@ -125,8 +130,14 @@ class SubmissionController extends Controller
 
         // Create or update submission
         if ($existingSubmission) {
+            // Check if graded before allowing update
+            if ($existingSubmission->grade) {
+                return redirect()->route('student.submissions.index')
+                    ->with('error', 'Cannot update a graded submission.');
+            }
+
             $existingSubmission->update([
-                'content' => $request->content,
+                'submission_text' => $request->submission_text,
                 'submitted_at' => now(),
                 'is_late' => $isLate,
                 'status' => 'resubmitted'
@@ -147,7 +158,7 @@ class SubmissionController extends Controller
             $submission = Submission::create([
                 'assignment_id' => $request->assignment_id,
                 'student_id' => Auth::user()->user_id,
-                'content' => $request->content,
+                'submission_text' => $request->submission_text,
                 'submitted_at' => now(),
                 'is_late' => $isLate,
                 'status' => 'submitted'
@@ -172,7 +183,7 @@ class SubmissionController extends Controller
      */
     public function show($id)
     {
-        $submission = Submission::with(['student', 'assignment.course', 'grade', 'files'])
+        $submission = Submission::with(['student', 'assignment.course', 'grade'])
             ->findOrFail($id);
 
         // Check permission
@@ -191,7 +202,7 @@ class SubmissionController extends Controller
      */
     public function edit($id)
     {
-        $submission = Submission::findOrFail($id);
+        $submission = Submission::with(['assignment.course'])->findOrFail($id);
 
         // Only the student who submitted can edit, and only if not graded
         if ($submission->student_id != Auth::user()->user_id) {
@@ -204,55 +215,60 @@ class SubmissionController extends Controller
                 ->with('error', 'Cannot edit a graded submission.');
         }
 
-        $assignment = $submission->assignment;
-
-        return view('submissions.edit', compact('submission', 'assignment'));
+        return view('submissions.edit', compact('submission'));
     }
 
-    /**
-     * Update a submission.
-     */
-    public function update(Request $request, $id)
-    {
-        $submission = Submission::findOrFail($id);
+/**
+ * Update a submission.
+ */
+public function update(Request $request, $id)
+{
+    $submission = Submission::findOrFail($id);
 
-        if ($submission->student_id != Auth::user()->user_id) {
-            return redirect()->route('dashboard')
-                ->with('error', 'You do not have permission to update this submission.');
-        }
+    if ($submission->student_id != Auth::user()->user_id) {
+        return redirect()->route('dashboard')
+            ->with('error', 'You do not have permission to update this submission.');
+    }
 
-        $request->validate([
-            'content' => 'nullable|string',
-            'file' => 'nullable|file|max:10240',
-        ]);
+    $request->validate([
+        'submission_text' => 'nullable|string',
+        'file' => 'nullable|file|max:10240',
+    ]);
 
-        $assignment = $submission->assignment;
-        $isLate = Carbon::now()->gt($assignment->due_date);
+    $assignment = $submission->assignment;
 
-        $submission->update([
-            'content' => $request->content,
-            'submitted_at' => now(),
-            'is_late' => $isLate,
-            'status' => 'updated'
-        ]);
-
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $fileName = time() . '_' . Auth::user()->user_id . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('submissions/' . $assignment->assignment_id, $fileName, 'public');
-
-            SubmissionFile::create([
-                'submission_id' => $submission->submission_id,
-                'file_path' => $filePath,
-                'file_name' => $file->getClientOriginalName(),
-                'file_size' => $file->getSize(),
-            ]);
-        }
-
+    // Check deadline
+    $deadlinePassed = Carbon::now()->gt($assignment->due_date);
+    if ($deadlinePassed && !$assignment->allow_late_submission) {
         return redirect()->route('student.submissions.index')
-            ->with('success', 'Submission updated successfully.');
+            ->with('error', 'Cannot update submission. Deadline has passed.');
     }
 
+    $isLate = Carbon::now()->gt($assignment->due_date);
+
+    $submission->update([
+        'submission_text' => $request->submission_text,
+        'submitted_at' => now(),
+        'is_late' => $isLate,
+        'status' => 'Resubmitted'  // Changed from 'updated' to 'Resubmitted'
+    ]);
+
+    if ($request->hasFile('file')) {
+        $file = $request->file('file');
+        $fileName = time() . '_' . Auth::user()->user_id . '_' . $file->getClientOriginalName();
+        $filePath = $file->storeAs('submissions/' . $assignment->assignment_id, $fileName, 'public');
+
+        SubmissionFile::create([
+            'submission_id' => $submission->submission_id,
+            'file_path' => $filePath,
+            'file_name' => $file->getClientOriginalName(),
+            'file_size' => $file->getSize(),
+        ]);
+    }
+
+    return redirect()->route('student.submissions.index')
+        ->with('success', 'Submission updated successfully.');
+}
     /**
      * Delete a submission.
      */
@@ -266,7 +282,8 @@ class SubmissionController extends Controller
         }
 
         // Delete associated files
-        foreach ($submission->files as $file) {
+        $files = SubmissionFile::where('submission_id', $submission->submission_id)->get();
+        foreach ($files as $file) {
             Storage::disk('public')->delete($file->file_path);
             $file->delete();
         }
@@ -287,7 +304,14 @@ class SubmissionController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('student.submissions', compact('submissions'));
+        // Get statistics
+        $totalSubmissions = Submission::where('student_id', Auth::user()->user_id)->count();
+        $gradedCount = Submission::where('student_id', Auth::user()->user_id)
+            ->whereHas('grade')
+            ->count();
+        $pendingCount = $totalSubmissions - $gradedCount;
+
+        return view('student.submissions', compact('submissions', 'totalSubmissions', 'gradedCount', 'pendingCount'));
     }
 
     /**
@@ -304,6 +328,11 @@ class SubmissionController extends Controller
             $submission->student_id != Auth::user()->user_id) {
             return redirect()->route('dashboard')
                 ->with('error', 'You do not have permission to download this file.');
+        }
+
+        if (!Storage::disk('public')->exists($file->file_path)) {
+            return redirect()->back()
+                ->with('error', 'File not found.');
         }
 
         return Storage::disk('public')->download($file->file_path, $file->file_name);

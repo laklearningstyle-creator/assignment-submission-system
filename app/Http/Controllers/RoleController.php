@@ -4,9 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RoleController extends Controller
 {
+    /**
+     * Constructor - Apply auth and admin middleware
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+        // Remove ->only() or use it correctly - in Laravel 12, this syntax works
+        // If you still get error, use the alternative below
+        $this->middleware('admin');
+    }
+
     /**
      * Display a listing of roles.
      */

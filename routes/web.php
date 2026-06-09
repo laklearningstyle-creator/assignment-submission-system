@@ -14,6 +14,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\StudentController;
 
 // ==================== PUBLIC ROUTES ====================
 Route::get('/', [HomeController::class, 'welcome'])->name('welcome');
@@ -28,22 +29,67 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/admin/dashboard', [DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
     Route::get('/teacher/dashboard', [DashboardController::class, 'teacherDashboard'])->name('teacher.dashboard');
-    Route::get('/student/dashboard', [DashboardController::class, 'studentDashboard'])->name('student.dashboard');
+    Route::get('/student/dashboard', [StudentController::class, 'dashboard'])->name('student.dashboard');
 
-    // ==================== COURSE RESOURCE ROUTES ====================
-    Route::resource('courses', CourseController::class);
+    // ==================== COURSE ROUTES ====================
+    Route::prefix('courses')->name('courses.')->group(function () {
+        Route::get('/', [CourseController::class, 'index'])->name('index');
+        Route::get('/create', [CourseController::class, 'create'])->name('create');
+        Route::post('/', [CourseController::class, 'store'])->name('store');
+        Route::get('/{id}', [CourseController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [CourseController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [CourseController::class, 'update'])->name('update');
+        Route::delete('/{id}', [CourseController::class, 'destroy'])->name('destroy');
+    });
 
-    // ==================== ASSIGNMENT RESOURCE ROUTES ====================
-    Route::resource('assignments', AssignmentController::class);
+    // ==================== ASSIGNMENT ROUTES ====================
+    Route::prefix('assignments')->name('assignments.')->group(function () {
+        Route::get('/', [AssignmentController::class, 'index'])->name('index');
+        Route::get('/create', [AssignmentController::class, 'create'])->name('create');
+        Route::post('/', [AssignmentController::class, 'store'])->name('store');
+        Route::get('/{id}', [AssignmentController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [AssignmentController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [AssignmentController::class, 'update'])->name('update');
+        Route::delete('/{id}', [AssignmentController::class, 'destroy'])->name('destroy');
+    });
 
-    // ==================== ENROLLMENT RESOURCE ROUTES ====================
-    Route::resource('enrollments', EnrollmentController::class);
+    // ==================== ENROLLMENT ROUTES ====================
+    Route::prefix('enrollments')->name('enrollments.')->group(function () {
+        Route::get('/', [EnrollmentController::class, 'index'])->name('index');
+        Route::get('/create', [EnrollmentController::class, 'create'])->name('create');
+        Route::post('/', [EnrollmentController::class, 'store'])->name('store');
+        Route::get('/{id}', [EnrollmentController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [EnrollmentController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [EnrollmentController::class, 'update'])->name('update');
+        Route::delete('/{id}', [EnrollmentController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk', [EnrollmentController::class, 'bulkEnroll'])->name('bulk');
+    });
 
-    // ==================== SUBMISSION RESOURCE ROUTES ====================
-    Route::resource('submissions', SubmissionController::class);
+    // Course students route
+    Route::get('/courses/{courseId}/students', [EnrollmentController::class, 'courseStudents'])->name('enrollments.course-students');
 
-    // ==================== FEEDBACK RESOURCE ROUTES ====================
-    Route::resource('feedbacks', FeedbackController::class);
+    // ==================== SUBMISSION ROUTES ====================
+    Route::prefix('submissions')->name('submissions.')->group(function () {
+        Route::get('/', [SubmissionController::class, 'index'])->name('index');
+        Route::get('/create', [SubmissionController::class, 'create'])->name('create');
+        Route::post('/', [SubmissionController::class, 'store'])->name('store');
+        Route::get('/{id}', [SubmissionController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [SubmissionController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [SubmissionController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SubmissionController::class, 'destroy'])->name('destroy');
+        Route::get('/download/{id}', [SubmissionController::class, 'downloadFile'])->name('download');
+    });
+
+    // ==================== FEEDBACK ROUTES ====================
+    Route::prefix('feedbacks')->name('feedbacks.')->group(function () {
+        Route::get('/', [FeedbackController::class, 'index'])->name('index');
+        Route::get('/create', [FeedbackController::class, 'create'])->name('create');
+        Route::post('/', [FeedbackController::class, 'store'])->name('store');
+        Route::get('/{id}', [FeedbackController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [FeedbackController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [FeedbackController::class, 'update'])->name('update');
+        Route::delete('/{id}', [FeedbackController::class, 'destroy'])->name('destroy');
+    });
 
     // ==================== GRADE ROUTES ====================
     Route::prefix('grades')->name('grades.')->group(function () {
@@ -58,41 +104,43 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ==================== STUDENT ROUTES ====================
-    Route::prefix('student')->name('student.')->group(function () {
-        Route::get('/my-courses', [EnrollmentController::class, 'myCourses'])->name('my-courses');
-        Route::get('/submissions', [SubmissionController::class, 'mySubmissions'])->name('submissions.index');
-        Route::get('/submissions/create/{assignment_id}', [SubmissionController::class, 'create'])->name('submissions.create');
-        Route::post('/submissions', [SubmissionController::class, 'store'])->name('submissions.store');
-        Route::get('/submissions/{id}', [SubmissionController::class, 'show'])->name('submissions.show');
-        Route::get('/submissions/{id}/edit', [SubmissionController::class, 'edit'])->name('submissions.edit');
-        Route::put('/submissions/{id}', [SubmissionController::class, 'update'])->name('submissions.update');
-        Route::delete('/submissions/{id}', [SubmissionController::class, 'destroy'])->name('submissions.destroy');
-        Route::get('/my-grades', [GradeController::class, 'myGrades'])->name('grades.my-grades');
+    Route::prefix('student')->name('student.')->middleware(['role:student'])->group(function () {
+        Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
+        Route::get('/my-courses', [StudentController::class, 'myCourses'])->name('my-courses');
+        Route::get('/my-submissions', [StudentController::class, 'mySubmissions'])->name('my-submissions');
+        Route::get('/my-grades', [StudentController::class, 'myGrades'])->name('my-grades');
         Route::get('/my-feedback', [FeedbackController::class, 'myFeedback'])->name('my-feedback');
+        Route::get('/submissions', [SubmissionController::class, 'mySubmissions'])->name('submissions.index');
     });
 
     // ==================== ADMIN ROUTES ====================
-    Route::prefix('admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {
         Route::resource('users', UserController::class);
         Route::resource('roles', RoleController::class);
-        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-        Route::post('/reports/submissions', [ReportController::class, 'generateSubmissionsReport'])->name('reports.submissions');
-        Route::post('/reports/grades', [ReportController::class, 'generateGradesReport'])->name('reports.grades');
-        Route::post('/reports/performance', [ReportController::class, 'generatePerformanceReport'])->name('reports.performance');
-        Route::get('/reports/download/{id}', [ReportController::class, 'download'])->name('reports.download');
-        Route::delete('/reports/{id}', [ReportController::class, 'destroy'])->name('reports.destroy');
+
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/', [ReportController::class, 'index'])->name('index');
+            Route::post('/submissions', [ReportController::class, 'generateSubmissionsReport'])->name('submissions');
+            Route::post('/grades', [ReportController::class, 'generateGradesReport'])->name('grades');
+            Route::post('/performance', [ReportController::class, 'generatePerformanceReport'])->name('performance');
+            Route::get('/download/{id}', [ReportController::class, 'download'])->name('download');
+            Route::delete('/{id}', [ReportController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // ==================== TEACHER ROUTES ====================
-    Route::prefix('teacher')->name('teacher.')->group(function () {
+    Route::prefix('teacher')->name('teacher.')->middleware(['role:teacher'])->group(function () {
         Route::get('/grades/assignment/{assignment_id}', [GradeController::class, 'byAssignment'])->name('grades.by-assignment');
         Route::get('/grades/submission/{submission_id}/edit', [GradeController::class, 'edit'])->name('grades.edit');
         Route::put('/grades/submission/{submission_id}', [GradeController::class, 'update'])->name('grades.update');
-        Route::get('/feedbacks/submission/{submission_id}', [FeedbackController::class, 'index'])->name('feedbacks.index');
-        Route::post('/feedbacks/submission/{submission_id}', [FeedbackController::class, 'store'])->name('feedbacks.store');
-        Route::get('/feedbacks/{id}/edit', [FeedbackController::class, 'edit'])->name('feedbacks.edit');
-        Route::put('/feedbacks/{id}', [FeedbackController::class, 'update'])->name('feedbacks.update');
-        Route::delete('/feedbacks/{id}', [FeedbackController::class, 'destroy'])->name('feedbacks.destroy');
+
+        Route::prefix('feedbacks')->name('feedbacks.')->group(function () {
+            Route::get('/submission/{submission_id}', [FeedbackController::class, 'index'])->name('index');
+            Route::post('/submission/{submission_id}', [FeedbackController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [FeedbackController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [FeedbackController::class, 'update'])->name('update');
+            Route::delete('/{id}', [FeedbackController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // ==================== NOTIFICATION ROUTES ====================

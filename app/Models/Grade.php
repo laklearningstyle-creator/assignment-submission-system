@@ -32,7 +32,7 @@ class Grade extends Model
 {
     protected $table = 'grades';
     protected $primaryKey = 'grade_id';
-    
+
     protected $fillable = [
         'submission_id',
         'marks_obtained',
@@ -40,30 +40,37 @@ class Grade extends Model
         'graded_by',
         'graded_at'
     ];
-    
+
     protected $casts = [
         'marks_obtained' => 'decimal:2',
         'graded_at' => 'datetime'
     ];
-    
+
     public function submission()
     {
         return $this->belongsTo(Submission::class, 'submission_id', 'submission_id');
     }
-    
+
     public function grader()
     {
         return $this->belongsTo(User::class, 'graded_by', 'user_id');
     }
-    
+
+    // Alias for grader - allows using 'gradedBy' in eager loading
+    public function gradedBy()
+    {
+        return $this->belongsTo(User::class, 'graded_by', 'user_id');
+    }
+
     public static function calculateGrade($marksObtained, $totalMarks)
     {
         $percentage = ($marksObtained / $totalMarks) * 100;
-        
-        if ($percentage >= 90) return 'A';
-        if ($percentage >= 80) return 'B';
-        if ($percentage >= 70) return 'C';
-        if ($percentage >= 60) return 'D';
+
+        if ($percentage >= 90) return 'A+';
+        if ($percentage >= 80) return 'A';
+        if ($percentage >= 70) return 'B';
+        if ($percentage >= 60) return 'C';
+        if ($percentage >= 50) return 'D';
         return 'F';
     }
 }

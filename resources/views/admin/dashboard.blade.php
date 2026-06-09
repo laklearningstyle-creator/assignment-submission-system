@@ -7,7 +7,7 @@
     <!-- Welcome Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-gradient-primary text-white border-0 rounded-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card text-white border-0 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                 <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-md-8">
@@ -27,7 +27,7 @@
         </div>
     </div>
 
-    <!-- Statistics Cards -->
+    <!-- Statistics Cards - Row 1 -->
     <div class="row g-4 mb-4">
         <div class="col-xl-3 col-md-6">
             <div class="card border-0 rounded-4 shadow-sm hover-card">
@@ -40,8 +40,8 @@
                                 <i class="fas fa-arrow-up me-1"></i> +{{ $newUsersThisMonth }} this month
                             </small>
                         </div>
-                        <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                            <i class="fas fa-users fa-2x text-primary"></i>
+                        <div class="stat-icon-circle" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-users"></i>
                         </div>
                     </div>
                 </div>
@@ -59,8 +59,8 @@
                                 <i class="fas fa-user-graduate me-1"></i> Active learners
                             </small>
                         </div>
-                        <div class="rounded-circle bg-success bg-opacity-10 p-3">
-                            <i class="fas fa-user-graduate fa-2x text-success"></i>
+                        <div class="stat-icon-circle" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <i class="fas fa-user-graduate"></i>
                         </div>
                     </div>
                 </div>
@@ -78,8 +78,8 @@
                                 <i class="fas fa-chalkboard-user me-1"></i> Educators
                             </small>
                         </div>
-                        <div class="rounded-circle bg-info bg-opacity-10 p-3">
-                            <i class="fas fa-chalkboard-user fa-2x text-info"></i>
+                        <div class="stat-icon-circle" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                            <i class="fas fa-chalkboard-user"></i>
                         </div>
                     </div>
                 </div>
@@ -97,8 +97,8 @@
                                 <i class="fas fa-book me-1"></i> Available
                             </small>
                         </div>
-                        <div class="rounded-circle bg-warning bg-opacity-10 p-3">
-                            <i class="fas fa-book fa-2x text-warning"></i>
+                        <div class="stat-icon-circle" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            <i class="fas fa-book"></i>
                         </div>
                     </div>
                 </div>
@@ -106,7 +106,7 @@
         </div>
     </div>
 
-    <!-- Second Row Statistics -->
+    <!-- Statistics Cards - Row 2 -->
     <div class="row g-4 mb-4">
         <div class="col-xl-3 col-md-6">
             <div class="card border-0 rounded-4 shadow-sm hover-card">
@@ -119,8 +119,8 @@
                                 <i class="fas fa-tasks me-1"></i> Created
                             </small>
                         </div>
-                        <div class="rounded-circle bg-danger bg-opacity-10 p-3">
-                            <i class="fas fa-tasks fa-2x text-danger"></i>
+                        <div class="stat-icon-circle" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                            <i class="fas fa-tasks"></i>
                         </div>
                     </div>
                 </div>
@@ -138,8 +138,8 @@
                                 <i class="fas fa-check-circle me-1"></i> {{ $gradedSubmissions }} graded
                             </small>
                         </div>
-                        <div class="rounded-circle bg-success bg-opacity-10 p-3">
-                            <i class="fas fa-paper-plane fa-2x text-success"></i>
+                        <div class="stat-icon-circle" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <i class="fas fa-paper-plane"></i>
                         </div>
                     </div>
                 </div>
@@ -152,13 +152,13 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-2">Pending Grading</h6>
-                            <h2 class="fw-bold mb-0 text-warning">{{ $pendingGrading }}</h2>
+                            <h2 class="fw-bold mb-0">{{ $pendingGrading }}</h2>
                             <small class="text-muted">
                                 <i class="fas fa-hourglass-half me-1"></i> Awaiting review
                             </small>
                         </div>
-                        <div class="rounded-circle bg-warning bg-opacity-10 p-3">
-                            <i class="fas fa-hourglass-half fa-2x text-warning"></i>
+                        <div class="stat-icon-circle" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            <i class="fas fa-hourglass-half"></i>
                         </div>
                     </div>
                 </div>
@@ -176,8 +176,8 @@
                                 <i class="fas fa-chart-line me-1"></i> Overall performance
                             </small>
                         </div>
-                        <div class="rounded-circle bg-info bg-opacity-10 p-3">
-                            <i class="fas fa-chart-line fa-2x text-info"></i>
+                        <div class="stat-icon-circle" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                            <i class="fas fa-chart-line"></i>
                         </div>
                     </div>
                 </div>
@@ -216,7 +216,6 @@
 
     <!-- Recent Activity Row -->
     <div class="row g-4">
-        <!-- Recent Users -->
         <div class="col-lg-6">
             <div class="card border-0 rounded-4 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-4 d-flex justify-content-between align-items-center">
@@ -230,13 +229,13 @@
                 <div class="card-body p-4">
                     <div class="list-group list-group-flush">
                         @forelse($recentUsers as $user)
-                            <div class="list-group-item bg-transparent px-0 py-3">
+                            <div class="list-group-item bg-transparent px-0 py-3 border-bottom">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
-                                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
-                                            <i class="fas fa-user text-primary"></i>
+                                        <div class="avatar-circle-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            <i class="fas fa-user text-white"></i>
                                         </div>
-                                        <div>
+                                        <div class="ms-3">
                                             <h6 class="mb-0 fw-bold">{{ $user->full_name }}</h6>
                                             <small class="text-muted">{{ $user->email }} • {{ ucfirst($user->role->role_name ?? 'User') }}</small>
                                         </div>
@@ -252,7 +251,6 @@
             </div>
         </div>
 
-        <!-- Recent Submissions -->
         <div class="col-lg-6">
             <div class="card border-0 rounded-4 shadow-sm">
                 <div class="card-header bg-transparent border-0 pt-4 d-flex justify-content-between align-items-center">
@@ -266,7 +264,7 @@
                 <div class="card-body p-4">
                     <div class="list-group list-group-flush">
                         @forelse($recentSubmissions as $submission)
-                            <div class="list-group-item bg-transparent px-0 py-3">
+                            <div class="list-group-item bg-transparent px-0 py-3 border-bottom">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <h6 class="mb-0 fw-bold">{{ $submission->assignment->title ?? 'N/A' }}</h6>
@@ -275,11 +273,13 @@
                                             {{ $submission->created_at->diffForHumans() }}
                                         </small>
                                     </div>
-                                    @if($submission->grade)
-                                        <span class="badge bg-success">Graded</span>
-                                    @else
-                                        <span class="badge bg-warning">Pending</span>
-                                    @endif
+                                    <div>
+                                        @if($submission->grade)
+                                            <span class="badge bg-success">Graded</span>
+                                        @else
+                                            <span class="badge bg-warning">Pending</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         @empty
@@ -312,10 +312,10 @@
                             <div class="col-md-6 mb-3">
                                 <div class="d-flex justify-content-between mb-1">
                                     <span class="fw-bold">Grade {{ $grade }}</span>
-                                    <span>{{ $gradeData[$index] }} students ({{ round($percentage) }}%)</span>
+                                    <span class="text-muted">{{ $gradeData[$index] }} students ({{ round($percentage) }}%)</span>
                                 </div>
-                                <div class="progress bg-light rounded-pill" style="height: 10px;">
-                                    <div class="progress-bar bg-{{ $color }}" style="width: {{ $percentage }}%; border-radius: 10px;"></div>
+                                <div class="progress bg-light rounded-pill" style="height: 8px;">
+                                    <div class="progress-bar bg-{{ $color }} rounded-pill" style="width: {{ $percentage }}%;"></div>
                                 </div>
                             </div>
                         @endforeach
@@ -366,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: @json($gradeLabels),
             datasets: [{
                 data: @json($gradeData),
-                backgroundColor: ['#43e97b', '#4facfe', '#fa709a', '#feca57', '#ff6b6b'],
+                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'],
                 borderWidth: 0,
                 hoverOffset: 10
             }]
@@ -393,17 +393,65 @@ document.addEventListener('DOMContentLoaded', function() {
         transform: translateY(-5px);
         box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
     }
+
+    /* Stat Icon Circle - Visible with gradient */
+    .stat-icon-circle {
+        width: 55px;
+        height: 55px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .stat-icon-circle i {
+        font-size: 26px;
+        color: white;
+    }
+
+    .stat-icon-circle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    }
+
+    /* Avatar Circle */
+    .avatar-circle-sm {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .avatar-circle-sm i {
+        font-size: 18px;
+        color: white;
+    }
+
     .bg-gradient-primary {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
+
     .list-group-item {
         transition: all 0.3s ease;
     }
+
     .list-group-item:hover {
         transform: translateX(5px);
+        background-color: rgba(102, 126, 234, 0.04);
     }
+
     .progress-bar {
         transition: width 0.6s ease;
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 6px 12px;
     }
 </style>
 @endsection
